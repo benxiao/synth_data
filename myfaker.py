@@ -1,40 +1,27 @@
 import random
+import importlib
 
 
 class MyFaker:
     def __init__(self, locale='indian'):
-        self.fn_male = []
-        self.fn_female = []
-        self.ln = []
-        with open(f"{locale}_names.csv") as fp:
-            for line in fp:
-                _, name, gender = line.split(",")
-                gender = gender.strip()
-                name = "".join(x for x in name if 64<ord(x)<91).lower()
-                if gender == 'm':
-                    self.fn_male.append(name.lower())
-                elif gender == 'f':
-                    self.fn_female.append(name.lower())
-                else:
-                    self.fn_male.append(name.lower())
-                    self.fn_female.append(name.lower())
-            print(self.fn_male)
-            print(self.fn_female)
+        names_module = importlib.import_module(f'international_names.{locale}')
+        self.d = getattr(names_module, locale)
 
-
-
+    def generate(self, x):
+        names = self.d[x]
+        return names[random.randint(0, len(names) - 1)]
 
     def first_name_male(self):
-        l = len(self.fn_male)
-        return self.fn_male[random.randint(0, l-1)]
+        return self.generate('first_names_male')
+
+    def first_name_female(self):
+        return self.generate('first_names_female')
 
     def last_name(self):
-        l = len(self.ln)
-        return self.ln[random.randint(0, l-1)]
-
+        return self.generate('last_names')
 
 
 if __name__ == '__main__':
-    myfaker = MyFaker()
-    # for _ in range(100):
-    #     print(myfaker.first_name_male(), myfaker.last_name())
+    faker = MyFaker()
+    for _ in range(5):
+        print(faker.first_name_male(), faker.last_name())

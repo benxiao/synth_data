@@ -101,3 +101,10 @@ first_names_female = \
      'pratima', 'praveena', 'pravina', 'preethi', 'preeti', 'prema', 'pritha', 'priti', 'priya',
      'priyanka', 'puja', 'punita', 'purnima', 'pushpa', 'rachana', 'rachna', 'radha', 'radhika',
      'rahat', 'rajani', 'rajinder', 'rajkumari', 'rajni', 'rakhi']
+
+
+indian = {
+  'first_names_male': first_names_male,
+  'first_names_female': first_names_female,
+  'last_names': last_names
+}
