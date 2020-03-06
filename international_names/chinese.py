@@ -1,4 +1,4 @@
-first_names_male = ['boys', 'an', 'bing', 'chen', 'chung', 'confucius', 'cong', 'deshi', 'dewei', 'fo-hai', 'fo-hsing',
+first_names_male = ['an', 'bing', 'chen', 'chung', 'confucius', 'cong', 'deshi', 'dewei', 'fo-hai', 'fo-hsing',
                     'gan', 'gao', 'genjo', 'ho', 'hsin', 'huang fu', 'hui-chao', "huik'o", 'jiang', 'jin', 'jing',
                     'jun', 'kong', 'lao-tzu', 'lee', 'lei', 'li', 'li-liang', 'liang', 'liko', 'manchu', 'ming',
                     'niao-ka', 'on', 'qing-nan', 'quon', 'shen', 'shing', 'sun', 'tung', 'uang', 'wang', 'wen', 'woo',
