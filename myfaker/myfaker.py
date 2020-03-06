@@ -4,7 +4,10 @@ import importlib
 
 class MyFaker:
     def __init__(self, locale='indian'):
-        names_module = importlib.import_module(f'international_names.{locale}')
+        try:
+            names_module = importlib.import_module(f'international_names.{locale}')
+        except ModuleNotFoundError:
+            raise ValueError(f"{locale=} not available!")
         self.d = getattr(names_module, locale)
 
     def generate(self, x):
@@ -22,6 +25,6 @@ class MyFaker:
 
 
 if __name__ == '__main__':
-    faker = MyFaker(locale='chinese')
+    faker = MyFaker(locale='fg')
     for _ in range(100):
         print(faker.first_name_male(), faker.last_name())
