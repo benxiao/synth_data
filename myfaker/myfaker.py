@@ -12,7 +12,7 @@ class MyFaker:
 
     def generate(self, x):
         names = self.d[x]
-        return names[random.randint(0, len(names) - 1)]
+        return names[random.randint(0, len(names) - 1)].capitalize()
 
     def first_name_male(self):
         return self.generate('first_names_male')
