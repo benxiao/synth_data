@@ -22,6 +22,6 @@ class MyFaker:
 
 
 if __name__ == '__main__':
-    faker = MyFaker()
-    for _ in range(5):
+    faker = MyFaker(locale='chinese')
+    for _ in range(100):
         print(faker.first_name_male(), faker.last_name())
