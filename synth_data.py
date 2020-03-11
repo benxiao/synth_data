@@ -216,5 +216,4 @@ print("write parent table...")
 parents.to_csv(f"parents_{TOTAL_NUMBER_OF_CHILDREN}.csv", index=False)
 
 
-
 print(f"elapsed time: {time.time() - start:.2f}s")
