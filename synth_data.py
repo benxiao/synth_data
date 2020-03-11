@@ -19,19 +19,19 @@ faker_english = faker.Faker(LOCALES)
 LOCALE_DISTRIBUTION = [0.7, 0.1, 0.2]
 faker_objects = [faker_english, MyFaker(locale='indian'), MyFaker(locale='chinese')]
 
-TOTAL_NUMBER_OF_CHILDREN = 1000
+TOTAL_NUMBER_OF_CHILDREN = 1000_000
 MALE_PERCENTAGE = 0.5
 CHILD_AGE_LOW = 5
 CHILD_AGE_HIGH = 18
-SIBLING_DISTRIBUTION = [0.33, 0.39, 0.22, 0.05, 0.01]
+FAMILY__SIZE_DISTRIBUTION = [0.33, 0.39, 0.22, 0.05, 0.01]
 EMAIL_DOMAINS = ['gmail', 'icloud', 'yahoo', 'me', 'hotmail', 'outlook']
 
 
 # parent age should tie to child age
 
 
-num_siblings = (np.array(SIBLING_DISTRIBUTION) * TOTAL_NUMBER_OF_CHILDREN).astype(np.int)
-num_sibling_groups = (num_siblings / np.arange(1, 6)).astype(np.int)
+num_siblings = (np.array(FAMILY__SIZE_DISTRIBUTION) * TOTAL_NUMBER_OF_CHILDREN).astype(np.int)
+num_family_groups = (num_siblings / np.arange(1, 6)).astype(np.int)
 num_male_records = int(TOTAL_NUMBER_OF_CHILDREN * MALE_PERCENTAGE)
 num_female_records = int(TOTAL_NUMBER_OF_CHILDREN * (1 - MALE_PERCENTAGE))
 ids = np.arange(num_female_records + num_male_records)
@@ -43,10 +43,10 @@ start = time.time()
 genders = np.random.choice(['m', 'f'], TOTAL_NUMBER_OF_CHILDREN, p=[MALE_PERCENTAGE, 1 - MALE_PERCENTAGE])
 
 
-def generate_sibling_ids() -> List[int]:
+def generate_family_ids() -> List[int]:
     result = []
     x = 0
-    for i, group_count in enumerate(num_sibling_groups, start=1):
+    for i, group_count in enumerate(num_family_groups, start=1):
         for _ in range(group_count):
             for _ in range(i):
                 result.append(x)
@@ -58,15 +58,15 @@ def generate_sibling_ids() -> List[int]:
     return result
 
 
-sibling_ids = generate_sibling_ids()
+family_ids = generate_family_ids()
 
 
-def generate_name_locales(sibling_ids) -> List[int]:
+def generate_name_locales(family_ids) -> List[int]:
     result = []
     prev = None
     l = len(LOCALE_DISTRIBUTION)
     options = np.arange(l)
-    for i in sibling_ids:
+    for i in family_ids:
         if prev != i:
             result.append(np.random.choice(options))
             prev = i
@@ -75,7 +75,7 @@ def generate_name_locales(sibling_ids) -> List[int]:
     return result
 
 
-name_locales = generate_name_locales(sibling_ids)
+name_locales = generate_name_locales(family_ids)
 
 first_names = np.array([faker_objects[i].first_name_male() if g == 'm' else faker_objects[i].first_name_female()
                         for g, i in zip(genders, name_locales)])
@@ -83,10 +83,10 @@ first_names = np.array([faker_objects[i].first_name_male() if g == 'm' else fake
 print(f"{first_names.shape=}")
 
 
-def generate_last_names(sibling_ids: List[int]) -> List[str]:
+def generate_last_names(family_ids: List[int]) -> List[str]:
     result = []
     prev = None
-    for i, k in zip(sibling_ids, name_locales):
+    for i, k in zip(family_ids, name_locales):
         if prev != i:
             result.append(faker_objects[k].last_name())
             prev = i
@@ -95,7 +95,7 @@ def generate_last_names(sibling_ids: List[int]) -> List[str]:
     return result
 
 
-last_names = np.array(generate_last_names(sibling_ids))
+last_names = np.array(generate_last_names(family_ids))
 print(f"{last_names.shape=}")
 
 
@@ -142,7 +142,7 @@ print(f"{emails.shape=}")
 
 children = DataFrame({
     "id": ids,
-    "sibling_id": sibling_ids,
+    "family_id": family_ids,
     "locale": name_locales,
     "first_name": first_names,
     "middle_name": middle_names,
@@ -152,6 +152,9 @@ children = DataFrame({
     "gender": genders,
     "is_child": [True] * TOTAL_NUMBER_OF_CHILDREN
 })
+
+print("write children table...")
+children.to_csv(f"children_{TOTAL_NUMBER_OF_CHILDREN}.csv", index=False)
 
 
 print(children.head(30).to_markdown(), end='\n'*4)
@@ -166,9 +169,9 @@ def father_birth_date_gen(child_birth_date: date) -> date:
 
 
 def generate_parents(children_df: DataFrame) -> DataFrame:
-    parents = children_df.drop_duplicates(subset=['sibling_id'])
+    parents = children_df.drop_duplicates(subset=['family_id'])
     n_pair_parents = len(parents)
-    parents = parents.append(parents.copy()).sort_values('sibling_id')
+    parents = parents.append(parents.copy()).sort_values('family_id')
     parent_genders = ['m', 'f'] * n_pair_parents
 
     parent_locales = parents['locale']
@@ -204,8 +207,14 @@ def generate_parents(children_df: DataFrame) -> DataFrame:
     parents.loc[:, 'id'] = np.arange(len(parents)) + len(children_df)
     print(parents.head(30).to_markdown())
 
+    return parents
+
 
 parents = generate_parents(children)
+
+print("write parent table...")
+parents.to_csv(f"parents_{TOTAL_NUMBER_OF_CHILDREN}.csv", index=False)
+
 
 
 print(f"elapsed time: {time.time() - start:.2f}s")
