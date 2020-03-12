@@ -1,5 +1,6 @@
 import itertools
 import random
+import time
 
 import pandas as pd
 import numpy as np
@@ -14,11 +15,11 @@ duplication_rate = 0.4
 
 # only use the top 1000 rows
 
+start = time.time()
+
 children = pd.read_csv("children_1000.csv")[['id', 'family_id']]
 parents = pd.read_csv("parents_1000.csv")[['id', 'family_id']]
 
-
-#print(children.head().to_markdown())
 
 all_family_ids = children.family_id.unique()
 family_ids_selected = pd.Series(all_family_ids).sample(int(len(all_family_ids) * p))
@@ -96,12 +97,14 @@ required_columns = [
 
 parent_relationship_selected = parent_relationship_selected.astype(np.int)[required_columns]
 parent_relationship_duplicates = parent_relationship_duplicates.astype(np.int)[required_columns]
-
 relationship_table_intermediate = pd.concat([parent_relationship_duplicates, parent_relationship_selected], ignore_index=True)
+relationship_table_intermediate['parent_drec_id'] = relationship_table_intermediate['parent_drec_id'] +\
+                                                    relationship_table_intermediate['child_drec_id'].max()
 
 
 parent_relationship = pd.DataFrame(relationship_table_intermediate[['child_drec_id', 'parent_drec_id']].values,
                                    columns=['subject_drec_id', 'related_drec_id'])
+parent_relationship['relationship_type'] = 'child'
 
 
 def id_permutations(ids):
@@ -118,14 +121,12 @@ sibling_pairs = relationship_table_intermediate[['family_drec_id', 'child_drec_i
     .values.tolist()
 
 sibling_pairs_flattened = list(more_itertools.flatten(sibling_pairs))
-sibling_relationship = pd.DataFrame(sibling_pairs, columns=['subject_drec_id', 'related_drec_id'])
+sibling_relationship = pd.DataFrame(sibling_pairs_flattened, columns=['subject_drec_id', 'related_drec_id'])
 sibling_relationship['relationship_type'] = 'sibling'
 
 
+final_relationship_table = pd.concat([sibling_relationship, parent_relationship], ignore_index=True)
+print(final_relationship_table.to_markdown())
 
 
-# #
-# # new_children_table.to_csv(f"{data_source_name}_children.csv")
-# # new_parent_table.to_csv(f"{data_source_name}_parents.csv")
-
-
+print(f"elapsed: {time.time()-start:.2f}")
