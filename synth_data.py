@@ -134,7 +134,7 @@ def email_gen(first_name, middle_name, last_name, birth_date) -> str:
         return f"{first_name}{sep}{last_name[0]}{birth_date.month}{birth_date.day}@{domain}.com"
 
     t = random.choice([t0, t1, t2, t3])
-    return t().lower()
+    return t().lower().replace(" ", ".")
 
 
 emails = email_gen(first_names, middle_names, last_names, birth_dates)
