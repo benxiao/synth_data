@@ -1,4 +1,7 @@
 import random
+import os
+import argparse as ap
+
 from enum import Enum
 import pandas as pd
 from pandas import Timedelta, Timestamp
@@ -173,10 +176,20 @@ CorruptionType2Func = {
 parent_count_probability = [0.04, 0.18, 0.78]
 
 
-if __name__ == '__main__':
+def configure_parser(parser: ap.ArgumentParser):
+    parser.add_argument("source_name", type=str, help="the sampled dataset you would like to apply corruptions on")
+    parser.add_argument("-d", "--debug", action='store_true', default=False, help="enable debugging")
 
-    df = pd.read_csv("data/edumaster_people.csv")
-    relationship = pd.read_csv("data/edumaster_relationship.csv")
+
+if __name__ == '__main__':
+    parser = ap.ArgumentParser()
+    configure_parser(parser)
+    args = parser.parse_args()
+    if (not os.path.isfile(f"data/{args.source_name}_people.csv")) or (not os.path.isfile(f"data/{args.source_name}_relationship.csv")):
+        raise EnvironmentError("run sampling first!")
+
+    df = pd.read_csv(f"data/{args.source_name}_people.csv")
+    relationship = pd.read_csv(f"data/{args.source_name}_relationship.csv")
 
     df['birth_date'] = pd.to_datetime(df['birth_date'])
     parent_df = df[~df.is_child]
@@ -207,11 +220,24 @@ if __name__ == '__main__':
             parent_keep.append(random.choice([True, False]))
             parent_keep.append((not parent_keep[-1]))
 
-print(f"{len(parent_keep)=}")
-print(f"{child_relationship.shape=}")
+    new_child_relationship = child_relationship[parent_keep]
+    new_sibling_relationship = relationship[relationship.relationship_type == 'sibling']
+    new_relationship = pd.concat([new_child_relationship, new_sibling_relationship], ignore_index=True)
+    if args.debug:
+        print("relationship:")
+        print(f"{new_relationship.shape=}")
+        print(new_relationship.head(100).to_markdown())
 
-result = child_relationship[parent_keep]
-print(result.head().to_markdown())
+    new_people = pd.concat([parent_df, children_df], ignore_index=True)
+    if args.debug:
+        print("people:")
+        print(f"{new_people.shape=}")
+        print(new_people.head(100).to_markdown())
+
+    if args.debug:
+        print("write data")
+    new_people.to_csv(f"data/{args.source_name}_people_corrupted.csv", index=False)
+    new_relationship.to_csv(f"data/{args.source_name}_relationship_corrupted.csv", index=False)
 
 
 
